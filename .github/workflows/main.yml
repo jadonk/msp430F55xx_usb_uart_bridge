@@ -5,8 +5,13 @@ name: CI
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on: 
-  [push, pull_request, workflow_dispatch]
-
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -19,6 +24,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Install gtest manually
+        run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp *.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
 
       - name: Install msp430-gcc
         run: |
@@ -33,7 +41,10 @@ jobs:
         env:
           MSP430_TOOLCHAIN_PATH: /opt/msp430-gcc
 
+      - name: test
+        run: sh ./run_tests.sh
+
       - uses: actions/upload-artifact@v2
         with:
           name: usb-uart-bridge
-          path: usb_uart_bridge*.*
+          path: usb_uart_bridge.*
